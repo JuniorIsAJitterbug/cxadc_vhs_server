@@ -7,15 +7,21 @@ SCRIPT_DIR="$(
 	cd "$(dirname "$0")"
 	pwd
 )"
-SERVER="$SCRIPT_DIR/cxadc_vhs_server"
 TEMP_DIR="$(mktemp --directory)"
 SOCKET="$TEMP_DIR/server.sock"
 
 # test the commands we need. if they fail, user will be appropriately notified by bash
 
-"$SERVER" version >/dev/null
 jq --version >/dev/null
 curl --version >/dev/null
+
+if "$SCRIPT_DIR/cxadc_vhs_server" version &>/dev/null; then
+	SERVER="$SCRIPT_DIR/cxadc_vhs_server"
+fi
+
+if "cxadc_vhs_server" version &>/dev/null; then
+	SERVER="cxadc_vhs_server"
+fi
 
 if "$SCRIPT_DIR/ffmpeg" -version &>/dev/null; then
 	FFMPEG_CMD="$SCRIPT_DIR/ffmpeg"
@@ -23,6 +29,9 @@ fi
 
 if "ffmpeg" -version &>/dev/null; then
 	FFMPEG_CMD="ffmpeg"
+fi
+if [[ -z "${SERVER-}" ]]; then
+	echo "No working cxadc_vhs_server found."
 fi
 
 if [[ -z "${FFMPEG_CMD-}" ]]; then
