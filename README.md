@@ -67,7 +67,9 @@ The script `local-capture.sh` is included in the repository to aid with local ca
 - curl
 - jq
 - cxadc_vhs_server
-- ffmpeg (optional) with libsoxr (optional)
+- ffmpeg (optional)
+- flac (optional)
+- sox (optional)
 
 You can install the first three from most distros' default repositories: 
 
@@ -91,22 +93,24 @@ A static ffmpeg build with libsoxr can be obtained from https://johnvansickle.co
 
 ```text
 Usage: local-capture.sh [options] <basepath>
-        --video=          Number of CX card to use for video capture (unset=disabled)
-        --hifi=           Number of CX card to use for hifi capture (unset=disabled)
-        --linear=         ALSA device identifier for linear (unset=default)
-        --add-date        Add current date and time to the filenames
-        --convert-linear  Convert linear to flac+u8
-        --compress-video  Compress video
-        --compress-hifi   Compress hifi
-        --resample-hifi   Resample hifi to 10 MSps
-        --debug           Show commands executed
-        --help            Show usage information
+        --video=                Number of CX card to use for video capture (unset=disabled)
+        --hifi=                 Number of CX card to use for hifi capture (unset=disabled)
+        --linear=               ALSA device identifier for linear (unset=default)
+        --add-date              Add current date and time to the filenames
+        --convert-linear        Convert linear to flac+u8
+        --compress-video        Compress video
+        --compress-video-level  Video compression level (unset=4)
+        --compress-hifi         Compress hifi
+        --compress-hifi-level   Hifi compression level (unset=4)
+        --resample-hifi         Resample hifi to 10 MSps
+        --debug                 Show commands executed
+        --help                  Show usage information
 ```
 
 #### Example
 
 ```text
-$ ./local-capture.sh --video=0 --hifi=1 --convert-linear --compress-video --compress-hifi --resample-hifi test
+$ ./local-capture.sh --video=0 --hifi=1 --convert-linear --compress-video --compress-video-level=1 --compress-hifi --compress-hifi-level=1 --resample-hifi test
 Server started (PID 3854)
 server listening on unix:/tmp/tmp.qDMBd0Ynxu/server.sock
 PID 3872 is capturing video to test-video.ldf
