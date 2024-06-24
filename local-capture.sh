@@ -77,6 +77,10 @@ for i in "$@"; do
 		LINEAR_DEVICE="${i#*=}"
 		shift # past argument=value
 		;;
+	--linear-rate=*)
+		LINEAR_RATE="${i#*=}"
+		shift # past argument=value
+		;;
 	--add-date)
 		ADD_DATE="YES"
 		shift # past argument with no value
@@ -127,6 +131,7 @@ function usage {
 	printf "\t--video=                Number of CX card to use for video capture (unset=disabled)\n" >&2
 	printf "\t--hifi=                 Number of CX card to use for hifi capture (unset=disabled)\n" >&2
 	printf "\t--linear=               ALSA device identifier for linear (unset=default)\n" >&2
+	printf "\t--linear-rate=          Linear sample rate (unset=46875)\n" >&2
 	printf "\t--add-date              Add current date and time to the filenames\n" >&2
 	printf "\t--convert-linear        Convert linear to flac+u8\n" >&2
 	printf "\t--compress-video        Compress video\n" >&2
@@ -196,8 +201,9 @@ sleep 0.5
 curl -X GET --unix-socket "$SOCKET" -s "http:/d/" >/dev/null || die "Server unreachable: $?"
 
 CXADC_COUNTER=0
+LINEAR_RATE=${LINEAR_RATE:=46875}
 
-START_URL="http:/d/start?"
+START_URL="http:/d/start?lrate=${LINEAR_RATE}&"
 if [[ -n "${CXADC_VIDEO-}" ]]; then
 	VIDEO_IDX="$CXADC_COUNTER"
 	((CXADC_COUNTER += 1))
@@ -216,7 +222,7 @@ fi
 
 START_RESULT=$(curl -X GET --unix-socket "$SOCKET" -s "$START_URL" || die "Cannot send start request to server: $?")
 echo "$START_RESULT" | jq -r .state | xargs test "Running" "=" || die "Server failed to start capture: $(echo "$START_RESULT" | jq -r .fail_reason)"
-LINEAR_RATE="$(echo "$START_RESULT" | jq -r .linear_rate)"
+RET_LINEAR_RATE="$(echo "$START_RESULT" | jq -r .linear_rate)"
 
 if [[ -n "${VIDEO_IDX-}" ]]; then
 	if [[ -z "${COMPRESS_VIDEO-}" ]]; then
@@ -274,7 +280,7 @@ if [[ -n "${CONVERT_LINEAR-}" ]]; then
 	LINEAR_PATH="$OUTPUT_BASEPATH-linear.flac"
 	curl -X GET --unix-socket "$SOCKET" -s --output - "http:/d/linear" | "$FFMPEG_CMD" \
 		-hide_banner -loglevel error \
-		-ar "$LINEAR_RATE" -ac 3 -f s24le -i - \
+		-ar "$RET_LINEAR_RATE" -ac 3 -f s24le -i - \
 		-filter_complex "[0:a]channelsplit=channel_layout=2.1[FL][FR][headswitch],[FL][FR]amerge=inputs=2[linear]" \
 		-map "[linear]" -compression_level 0 "$LINEAR_PATH" \
 		-map "[headswitch]" -f u8 "$HEADSWITCH_PATH" &

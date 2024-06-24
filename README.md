@@ -98,6 +98,7 @@ Usage: local-capture.sh [options] <basepath>
         --linear=               ALSA device identifier for linear (unset=default)
         --add-date              Add current date and time to the filenames
         --convert-linear        Convert linear to flac+u8
+        --linear-rate           Linear sample rate (unset=46875)
         --compress-video        Compress video
         --compress-video-level  Video compression level (unset=4)
         --compress-hifi         Compress hifi
